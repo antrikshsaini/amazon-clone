@@ -34,10 +34,11 @@ function Payment() {
     getClientSecret();
   }, [basket]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setProcessing(true);
+  console.log('The Secret IS >> ', clientSecret);
 
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setProcessing(true);
     const payload = await stripe
       .confirmCardPayment(clientSecret, {
         payment_method: {
@@ -52,6 +53,9 @@ function Payment() {
         setProcessing(false);
 
         history.replace('/orders');
+      })
+      .catch((error) => {
+        throw error;
       });
   };
 
