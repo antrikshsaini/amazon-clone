@@ -7,6 +7,7 @@ import CheckoutProduct from './CheckoutProduct';
 import './Payment.css';
 import { getBasketTotal } from './reducer';
 import { useStateValue } from './StateProvider';
+import { db } from './firebase';
 
 function Payment() {
   const [{ basket, user }, dispatch] = useStateValue();
@@ -48,15 +49,30 @@ function Payment() {
       .then(({ paymentIntent }) => {
         // paymentIntent = payment confirmation
 
+        db.collection('users')
+          .doc(user?.uid)
+          .collection('orders')
+          .doc(paymentIntent.id)
+          .set({
+            basket: basket,
+            amount: paymentIntent.amount,
+            created: paymentIntent.created,
+          });
+
         setSucceeded(true);
         setError(null);
         setProcessing(false);
 
+        dispatch({
+          type: 'EMPTY_BASKET',
+        });
+
         history.replace('/orders');
-      })
-      .catch((error) => {
-        throw error;
       });
+
+    // .catch((error) => {
+    //   throw error;
+    // });
   };
 
   const handleChange = (event) => {
@@ -104,7 +120,7 @@ function Payment() {
             <h3>Payment Method</h3>
           </div>
           <div className="payment__details">
-            <form onSubmit="handleSubmit">
+            <form onSubmit={handleSubmit}>
               <CardElement onChange={handleChange} />
 
               <div className="payment__priceContainer">
